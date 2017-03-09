@@ -201,3 +201,41 @@ SingleGArun<-function(ChromNum=1000,iter=30,synlethNA,ChromLen=8,Crossover=0.5,I
   
   return(SGARun)
 }
+
+GAAssembler<-function(iter=30){
+  #Function to assemble individual instances of multiple runs
+  #files will be named of the type Iterx where x is the iteration number
+  
+  MultiList<-vector(mode="list")
+  for(i in 1:iter)
+  {
+    print(i)
+    load(file = paste("Iter",i,".rda",collapse=""))
+    MultiList[[i]]<-Multi_List
+    rm(Multi_List)
+  }
+  return(MultiList)
+}
+
+GARunMultiply<-function(super_iter=30){
+  pb<-txtProgressBar(min=1,max=super_iter,style = 3)
+  for(i in 1:super_iter)
+  {
+    setTxtProgressBar(pb,value = i)
+    Multi_List<-SingleGArun(ChromNum = 1000,iter = 30,synlethNA,ChromLen = 8,Crossover = 0.5,ImmigRatio = 0.01)
+    save(Multi_List,file=paste("Iter",i,".rda",collapse=""),compress = TRUE)
+  }
+  
+  MultiList<-GAAssembler(iter=super_iter)
+  unlink(x="Iter*") # Remove all the Iteration files generated
+  return(MultiList)
+}
+
+GARunBootStrap<-function(start_ix=1,no_BS=30){
+  
+  for(i in start_ix:no_BS)
+  {
+    Run30x30<-GARunMultiply(super_iter = 30)
+    save(Run30x30,file=paste("BootStrap",i,".rda",collapse=""),compress=TRUE)
+  }
+}
